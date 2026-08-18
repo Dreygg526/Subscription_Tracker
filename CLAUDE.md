@@ -251,60 +251,92 @@ behaviour if `shopify-csv.ts` is ever rewritten.
 
 ---
 
+## Where it runs
+
+| | URL |
+|---|---|
+| **Customer tracker** | https://nac-tracker-wine.vercel.app |
+| **Admin console** | https://nac-tracker-admin.vercel.app |
+| **Repository** | https://github.com/Dreygg526/Subscription_Tracker (public) |
+| Vercel project | `dreygg526s-projects/nac-tracker` |
+| Supabase project | ref `pzsxxswyulakkpwtyzai` (NAC / The Standard Lab) |
+
+Both hostnames are aliases of the **same** Vercel project and the same
+deployment — the split is done in `src/middleware.ts`, not by two deployments.
+That matters when you deploy: `vercel --prod` updates the customer host, and the
+admin alias has to be re-pointed at the new deployment afterwards, or admin keeps
+serving the previous build:
+
+```bash
+npx vercel --prod
+npx vercel alias set <new-deployment-url> nac-tracker-admin.vercel.app
+```
+
+The tracker is on `nac-tracker-wine` and not `nac-tracker` because Vercel
+appends a word when the name is already taken globally — `nac-tracker.vercel.app`
+belongs to a stranger's project. Don't test against it by mistake; it serves a
+different app entirely, which briefly looked like our routing was broken.
+
+`NEXT_PUBLIC_ADMIN_HOST` is set in **Production only**. Preview deploys get one
+hostname, so leaving it unset there makes the middleware fall back to serving
+both apps together instead of making admin unreachable.
+
 ## State
 
-**Running for real against a live Supabase project** (ref `pzsxxswyulakkpwtyzai`,
-brand NAC / The Standard Lab). Typecheck clean, 44 tests pass.
+**Live, deployed, and used end to end on 2026-08-18.** Typecheck clean, 50 tests
+pass, production build clean.
 
-Rebuilt on 2026-08-18: password auth, a five-step onboarding wizard, per-day
-tips, a mobile-first redesign with dark mode, and the admin console moved to its
-own hostname. Verified by driving the running app:
+Everything in the original brief is built. Verified against the running app, not
+mocks:
 
-- host split: `localhost:3000/admin` → bounced; `admin.localhost:3000/` → the
-  console's own login; `manifest.webmanifest` and `sw.js` → 404 on the admin
-  host, so the console can never be installed as the tracker
-- every page compiles and renders; `npx tsc --noEmit` clean
+- **The daily tap is finally proven.** It was this project's longest-standing
+  untested path — a client `onClick` that unit tests could never reach. There is
+  now a real `check_ins` row from the deployed app.
+- sign-up → confirmation email → profile → challenge, on the live database
+- the host split in production: `/admin` bounced on the customer host,
+  `manifest.webmanifest` and `sw.js` 404 on the admin host, `/dev-login` 404 in
+  production
+- PWA served over HTTPS: `display: standalone`, 3 icons, service worker 200
+- offer rules resolve correctly, and the account with a real order reads as
+  verified
 
-**Blocked on two manual steps before anything database-backed can be verified:**
+**Deliberately not enforced: the purchase gate.** `REQUIRE_ORDER_MATCH=false`,
+so the bundle someone picks during sign-up is enough to get in — no purchase
+required. That is a chosen trade to launch without waiting on order import, not
+a bug, and it is the one line of the original brief not currently satisfied. The
+matching code still runs on every load and records who is verified, so flipping
+the flag to `true` in Vercel turns it into a real gate with no code change.
 
-1. `supabase/schema.sql` has an onboarding migration appended (new `profiles`
-   columns). It has NOT been applied — paste the file into the Supabase SQL
-   editor and run it. Until then, onboarding and the tracker will error.
-2. Supabase → Authentication → Providers → Email: enable password sign-in and
-   turn **Confirm email off**. Until then `signUp` returns no session and the
-   wizard cannot finish. (Custom SMTP is already configured and is a separate
-   page — this is the *Providers* page.)
-
-**Still unverified: the check-in tap itself.** It's a client `onClick`, so it
-needs a real browser. Everything behind it (idempotent insert, streak maths) is
-unit-tested but has never been exercised against the live database.
+**Known untidiness in the live database:** `offers` holds 5 rows where 3 would
+do — duplicate 90/150 rules from re-pasting `schema.sql` before it had a unique
+index, plus a `Manual grant — 90 Day Supply` rule created by the manual grant
+form. Harmless (longest match wins) but confusing in the admin list. The dedupe
+block at the bottom of `supabase/schema.sql` fixes it and has not been run.
 
 ## Next up
 
 1. **Move off Gmail SMTP to a transactional provider** (Resend/Postmark).
-   Custom SMTP is already on and working, but Gmail is a personal sender —
-   Supabase warns about deliverability, daily send caps apply, and the project
-   enforces a 60-second minimum interval per user. Password reset is the only
+   Custom SMTP is on and working, but Gmail is a personal sender — Supabase warns
+   about deliverability, daily send caps apply, and the project enforces a
+   60-second minimum interval per user. Password reset is the only
    account-recovery path, so a throttled or spam-filed email is a locked-out
    customer.
-2. **Turn on `REQUIRE_ORDER_MATCH`** once CSV import is routine. Until then the
-   tracker is effectively open to anyone who finds the URL — see the decision
-   above. The admin Customers table shows who is unverified.
+2. **Turn on `REQUIRE_ORDER_MATCH`** once CSV import is routine. See above.
 3. **Shopify `orders/create` webhook**, to make unlocks instant. A single new
    route at `src/app/api/shopify/webhook/route.ts` that verifies the HMAC
    signature and inserts line items into `orders` with `source: 'webhook'` —
    the same shape `parseShopifyOrders` already produces.
-4. Deploy to Vercel on two domains: `app.yourbrand.com` and
-   `admin.yourbrand.com`, both pointing at the same project, with
-   `NEXT_PUBLIC_ADMIN_HOST` set in Production only. Leave it **unset** in
-   Preview — preview deploys get one hostname, and the middleware falls back to
-   serving both apps together when the var is empty.
-   Add all four `/auth/callback` URLs to Supabase → Authentication → URL
-   Configuration. HTTPS is required for PWA install, so "installs to the home
-   screen" cannot be verified before this.
-5. Move offer matching from `title_contains` to `sku` once variants have SKUs.
+4. **A real domain.** `app.thestandardlab.com` / `admin.thestandardlab.com` in
+   Vercel, `NEXT_PUBLIC_ADMIN_HOST` updated, and all four `/auth/callback` URLs
+   added to Supabase → Authentication → URL Configuration. **Do this before
+   building the Android APK** — a TWA is locked to one domain, so moving after
+   the fact breaks the app for everyone who installed it.
+5. **Build the APK** (README, "The Android app"). Needs the domain above, and
+   the signing key must be backed up — losing it means never being able to
+   update installed users.
+6. Move offer matching from `title_contains` to `sku` once variants have SKUs.
    Promo titles get edited; SKUs don't.
-6. Get one legal read of `src/lib/tips.ts` before launch. Outcome claims in it
+7. Get one legal read of `src/lib/tips.ts` before launch. Outcome claims in it
    are quoted from the brand's own product page and nothing is invented, but it
    is still health-adjacent copy.
 

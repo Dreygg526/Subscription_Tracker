@@ -15,6 +15,19 @@ Stack: Next.js 15 (App Router) · Supabase (Postgres + auth) · Vercel.
 
 ---
 
+## Live
+
+| | URL |
+|---|---|
+| Customer tracker | https://nac-tracker-wine.vercel.app |
+| Admin console | https://nac-tracker-admin.vercel.app |
+
+Both are aliases of one Vercel project; `src/middleware.ts` splits them by
+hostname. After `vercel --prod`, re-point the admin alias at the new deployment
+or it keeps serving the previous build.
+
+---
+
 ## How access works
 
 1. Customer buys a bundle in Shopify.
