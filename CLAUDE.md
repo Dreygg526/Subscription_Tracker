@@ -322,10 +322,10 @@ block at the bottom of `supabase/schema.sql` fixes it and has not been run.
    account-recovery path, so a throttled or spam-filed email is a locked-out
    customer.
 2. **Turn on `REQUIRE_ORDER_MATCH`** once CSV import is routine. See above.
-3. **Shopify `orders/create` webhook**, to make unlocks instant. A single new
-   route at `src/app/api/shopify/webhook/route.ts` that verifies the HMAC
-   signature and inserts line items into `orders` with `source: 'webhook'` —
-   the same shape `parseShopifyOrders` already produces.
+3. **Shopify `orders/paid` webhook + automatic enrolment.** This is now the
+   client's top priority, not a nice-to-have — see "Requested next: automatic
+   enrolment from Shopify" below for the flow, the access it needs, and the
+   decisions still open.
 4. **A real domain.** `app.thestandardlab.com` / `admin.thestandardlab.com` in
    Vercel, `NEXT_PUBLIC_ADMIN_HOST` updated, and all four `/auth/callback` URLs
    added to Supabase → Authentication → URL Configuration. **Do this before
@@ -339,6 +339,81 @@ block at the bottom of `supabase/schema.sql` fixes it and has not been run.
 7. Get one legal read of `src/lib/tips.ts` before launch. Outcome claims in it
    are quoted from the brand's own product page and nothing is invented, but it
    is still health-adjacent copy.
+
+## Requested next: automatic enrolment from Shopify
+
+Raised by Mickey (the client) on 2026-08-18, and it is the next real piece of
+work. His words: *"It should be automatically send over customer email with login
+details"*, *"Maybe connect it with the product on Shopify"*, *"You have to find a
+way to implement it to some of the order — not just build the app."*
+
+**The gap he is pointing at.** Everything here is currently *pull-based*: someone
+exports a CSV, uploads it, and the customer has to discover the tracker and tell
+us which bundle they bought. He wants it *push-based* — the purchase itself
+creates the account and emails the customer. That is a different architecture,
+not a feature: the app has no way to learn about a sale on its own, and no way to
+contact anyone first.
+
+**The designed flow** (full write-up: `Order-to-Tracker Handoff` artifact, and
+`~/Downloads/Order-to-Tracker-Handoff.pdf`):
+
+1. Customer pays on Shopify.
+2. An `orders/paid` webhook posts the order to a new route in this app.
+3. The route verifies Shopify's HMAC signature before writing anything — the
+   endpoint is public, so an unverified request is a free tracker for anyone.
+4. Line items are stored in the same shape `parseShopifyOrders` already produces
+   (`source: 'webhook'`), then matched against the existing offer rules.
+   Deliveries are deduped: Shopify retries, and one sale must not create two
+   accounts.
+5. The account and challenge are created from the order — no sign-up form, and
+   `claimed_days` stops mattering because the real product is known.
+6. The customer gets one email with a link to set a password.
+
+**Send a link, not a password.** "Login details" usually means emailing a
+generated password. Pushed back on this: emailed passwords persist in inboxes,
+get forwarded, and leave us holding a credential we created for someone else.
+Recommendation is a one-click set-password link. Mickey has not ruled either way
+yet — if he insists on a password, that is his call to make explicitly.
+
+**Blocked on Shopify access, which we do not have.** The developer is not an
+admin on the store. Needed from the store owner:
+
+1. The **"Manage settings"** staff permission — `Settings → Users → [name] →
+   Permissions`. Only the store owner can grant it. This is what unlocks
+   `Settings → Notifications`, where the webhook is created.
+2. The **webhook signing secret** — same Notifications page, in the line reading
+   "All your webhooks will be signed with…". Only appears once a webhook exists.
+   Treat as a credential; it belongs in an env var, never in the repo.
+3. **Product and variant IDs** for the three bundles, so matching can move from
+   `title_contains` to IDs. A promo rename currently breaks access silently.
+4. **One test order** — draft order, 100% discount, or test payment mode.
+
+**Explicitly NOT needed: a Shopify Partner account or a custom app.** A plain
+store webhook is a built-in setting and needs none of that. This matters because
+since 1 January 2026 Shopify no longer allows the old style of custom app to be
+created in the store admin — those now require the Shopify Dev Dashboard and a
+Partner account. Going the app route would only be necessary to read *historical*
+orders through the API, which the CSV import already covers. If someone proposes
+building an app, that is a much larger approval conversation for no gain.
+
+**DNS is not a blocker.** Initially listed as a requirement; it is not. The app
+runs on its vercel.app URLs and email already works through the existing
+`ai_support@thestandardlab.com` SMTP. DNS only matters for moving to
+`app.thestandardlab.com` — which must happen *before* the Android APK is built,
+since a TWA is locked to its domain.
+
+**Open decisions for Mickey**, none of which are technical:
+
+- Password in the email, or a set-password link?
+- Does the 30-day bundle include the tracker? The product page frames it as a
+  gift with the 90 and 150 day bundles; the app currently grants it to 30-day
+  buyers too.
+- Does the email come from this app, or match an existing Klaviyo template?
+- On a refund, is access revoked or kept?
+
+**What can start without any of the above:** the webhook route, signature
+verification, auto-enrolment and the welcome email can all be built and tested
+against generated orders. Only the final connection needs the store.
 
 ## Local development
 
