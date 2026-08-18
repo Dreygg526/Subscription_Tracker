@@ -1098,3 +1098,12 @@ h2.section {
   text-transform: uppercase;
   color: var(--brand);
 }
+
+/* Admin header: signed-in address above the way out. */
+.whoami {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}

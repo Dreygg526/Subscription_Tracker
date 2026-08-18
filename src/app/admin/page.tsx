@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { getAdminSession, requireOrderMatch } from '@/lib/access';
 import { entitlementFor, type Offer, type OrderLine } from '@/lib/challenge';
+import { signOut } from '@/app/actions';
 import { createOffer, deleteOffer, grantAccess, toggleOffer } from './actions';
 import ImportForm from './ImportForm';
 
@@ -96,7 +97,17 @@ export default async function AdminPage({
           <div className="eyebrow">Admin</div>
           <h1>Tracker config</h1>
         </div>
-        <span className="eyebrow">{session.user.email}</span>
+        {/* Which admin is signed in, and a way out. There is more than one
+            admin account now, so "who am I?" and "let me switch" both matter.
+            signOut redirects to "/", which on this host lands on /admin/login. */}
+        <div className="whoami">
+          <span className="eyebrow">{session.user.email}</span>
+          <form action={signOut}>
+            <button className="linkish" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
       </header>
 
       {msg ? (
