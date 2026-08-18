@@ -1,0 +1,1100 @@
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   Everything visual reads from here. Nothing below this block should contain a
+   raw hex value -- that rule is what makes dark mode a token swap rather than a
+   rewrite, and it is why the old hardcoded greys (#edf1f5, #e2e8ee, #fdeee8)
+   are now tokens.
+
+   Brand blue stays: it matches the product packaging, the generated PWA icons,
+   and manifest.theme_color. Amber and green are semantic accents only --
+   amber for the streak, green for a completed day.
+--------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  /* brand */
+  --brand: #2f6fae;
+  --brand-deep: #12314f;
+  --brand-soft: #eaf2fa;
+  --brand-ring: rgba(47, 111, 174, 0.15);
+  --brand-glow: rgba(47, 111, 174, 0.32);
+
+  /* surfaces + text */
+  --bg: #f6f9fc;
+  --card: #ffffff;
+  --ink: #16354f;
+  --muted: #6c8299;
+  --line: #dde6ef;
+
+  /* semantic.
+     *-fill is for shapes, *-text is the AA-passing variant used for type:
+     #1f9d6b is 3.44:1 on white and #d97706 is 3.19:1 -- both under the 4.5:1
+     floor, and both were being used as text. */
+  --good-fill: #1f9d6b;
+  --good: #047857;
+  --good-soft: rgba(31, 157, 107, 0.35);
+  --streak-fill: #d97706;
+  --streak: #b45309;
+  --streak-soft: #fdf3e3;
+  --warn: #b4451f;
+  --warn-soft: #fdeee8;
+  --caution: #8a5a12;
+  --caution-soft: #fdf6e6;
+
+  /* day grid.
+     Missed is warm and clearly different from upcoming -- they used to be two
+     greys four percent apart, which read as one colour. */
+  --day-upcoming: #e7edf4;
+  --day-missed: #f0b9a3;
+  --day-missed-edge: #d98f70;
+
+  /* spacing: a 4px rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* type scale */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 22px;
+  --text-xl: 27px;
+  --text-hero: 58px;
+
+  /* shape */
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  /* elevation */
+  --shadow: 0 1px 2px rgba(18, 49, 79, 0.06), 0 8px 24px rgba(18, 49, 79, 0.07);
+  --shadow-lift: 0 2px 6px rgba(18, 49, 79, 0.08), 0 14px 32px rgba(18, 49, 79, 0.1);
+
+  /* motion */
+  --fast: 140ms;
+  --normal: 240ms;
+  --slow: 700ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* fonts, set by next/font in layout.tsx */
+  --font-heading: var(--font-lora), Georgia, 'Times New Roman', serif;
+  --font-body: var(--font-raleway), ui-rounded, 'SF Pro Rounded', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-numeric: ui-rounded, -apple-system, 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --brand: #6aa6de;
+    --brand-deep: #cfe3f6;
+    --brand-soft: #16304a;
+    --brand-ring: rgba(106, 166, 222, 0.25);
+    --brand-glow: rgba(106, 166, 222, 0.22);
+
+    --bg: #0c1926;
+    --card: #132535;
+    --ink: #e8f0f8;
+    --muted: #93a9be;
+    --line: #23394d;
+
+    --good-fill: #34d399;
+    --good: #6ee7b7;
+    --good-soft: rgba(67, 195, 145, 0.35);
+    --streak-fill: #f0a53c;
+    --streak: #fcd34d;
+    --streak-soft: #2e2314;
+    --warn: #f08a63;
+    --warn-soft: #35201a;
+    --caution: #e8bd76;
+    --caution-soft: #2c2515;
+
+    --day-upcoming: #1b2f42;
+    --day-missed: #8a4a30;
+    --day-missed-edge: #b46243;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35), 0 14px 32px rgba(0, 0, 0, 0.45);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+}
+
+/* Safe-area insets live on the scroll container, NOT on body. Putting them on
+   body would sit a sticky bottom bar above the home-indicator gap instead of
+   behind it, which reads as a broken layout on an iPhone. */
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
+
+/* Kills the grey flash iOS paints over tapped elements. */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The phone column. Widened on desktop by .shell.wide below -- on a laptop the
+   460px column left two thirds of the screen empty. */
+.shell {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-5)
+    calc(var(--space-7) + env(safe-area-inset-bottom));
+}
+
+/* Room for the sticky action bar so the last element is never trapped behind it. */
+.shell.has-bottombar {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+/* --- header --------------------------------------------------------------- */
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.top h1 {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.linkish {
+  background: none;
+  border: 0;
+  padding: var(--space-2) 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkish:hover {
+  color: var(--brand);
+}
+
+/* --- the ring ------------------------------------------------------------- */
+
+.ring-wrap {
+  position: relative;
+  width: min(260px, 72vw);
+  aspect-ratio: 1;
+  margin: 0 auto var(--space-2);
+}
+
+.ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--brand-soft);
+  stroke-width: 14;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 14;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--slow) var(--ease);
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.ring-count {
+  font-family: var(--font-numeric);
+  font-size: clamp(44px, 16vw, var(--text-hero));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--brand-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-of {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ring-label {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --- the button ----------------------------------------------------------- */
+
+.tap {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  margin: var(--space-5) 0 var(--space-3);
+  padding: var(--space-5) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 6px 18px var(--brand-glow);
+  transition: transform var(--fast) var(--ease), background var(--normal) ease,
+    box-shadow var(--normal) ease;
+}
+
+.tap:active {
+  transform: scale(0.975);
+}
+
+.tap:disabled {
+  cursor: default;
+}
+
+.tap.done {
+  background: var(--card);
+  color: var(--good);
+  border: 2px solid var(--good-soft);
+  box-shadow: none;
+}
+
+.tap.pending {
+  opacity: 0.7;
+}
+
+.tap-sub {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* --- stats ---------------------------------------------------------------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: var(--space-5) 0;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-2);
+  text-align: center;
+}
+
+.stat.is-streak .stat-value {
+  color: var(--streak);
+}
+
+.stat-value {
+  font-family: var(--font-numeric);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  margin-top: var(--space-1);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --- cards + day grid ----------------------------------------------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow);
+}
+
+.card + .card {
+  margin-top: var(--space-4);
+}
+
+.card h2 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* today's tip */
+.tip-title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tip-body {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.steps-list {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-5);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.steps-list li + li {
+  margin-top: var(--space-2);
+}
+
+.disclaimer {
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  /* Tracker passes --grid-cols: a 30-day run in 15 columns is two stubby rows. */
+  grid-template-columns: repeat(var(--grid-cols, 15), 1fr);
+  gap: var(--space-1);
+}
+
+.day {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--day-upcoming);
+}
+
+.day.done {
+  background: var(--brand);
+}
+
+.day.today {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--brand-deep);
+}
+
+.day.missed {
+  background: var(--day-missed);
+  /* Not colour alone: a visible edge keeps it distinguishable for anyone who
+     can't separate the two hues. */
+  box-shadow: inset 0 0 0 1.5px var(--day-missed-edge);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+/* --- messages ------------------------------------------------------------- */
+
+.note {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--brand-deep);
+}
+
+.note.bad {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* say() emits three tones; this is the one that used to render as an error. */
+.note.warn {
+  background: var(--caution-soft);
+  color: var(--caution);
+}
+
+.centered {
+  text-align: center;
+}
+
+/* --- forms ---------------------------------------------------------------- */
+
+.auth {
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth p {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.field + .field {
+  margin-top: var(--space-4);
+}
+
+label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+input[type='email'],
+input[type='text'],
+input[type='number'],
+input[type='password'],
+input[type='tel'],
+input[type='date'],
+textarea,
+select {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-4) 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font: inherit;
+  font-size: 16px; /* < 16px makes iOS zoom on focus */
+  color: var(--ink);
+  transition: border-color var(--fast) ease, box-shadow var(--fast) ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--warn);
+}
+
+.field-error {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--warn);
+}
+
+.field-hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* password field with a show/hide toggle */
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 68px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  min-height: 44px;
+  min-width: 56px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin-top: var(--space-4);
+  padding: 15px var(--space-5);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: transform var(--fast) var(--ease), opacity var(--fast) ease;
+}
+
+.btn:active {
+  transform: scale(0.985);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn.small {
+  width: auto;
+  min-height: 44px;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.btn.danger {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--warn);
+}
+
+/* --- onboarding wizard ---------------------------------------------------- */
+
+.stepbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--space-5);
+}
+
+.stepbar i {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+  transition: background var(--normal) ease;
+}
+
+.stepbar i.on {
+  background: var(--brand);
+}
+
+.step-count {
+  margin-bottom: var(--space-2);
+}
+
+/* choice cards -- bundles, and anything else with 2-4 options */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-4) var(--space-5);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  transition: border-color var(--fast) ease, box-shadow var(--fast) ease,
+    transform var(--fast) var(--ease);
+}
+
+.choice:active {
+  transform: scale(0.99);
+}
+
+.choice.on {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.choice-name {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.choice-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* segmented control -- gender, and other short single-choice sets */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.segmented button {
+  min-height: 48px;
+  padding: var(--space-3);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--ink);
+  transition: border-color var(--fast) ease, background var(--fast) ease;
+}
+
+.segmented button.on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-deep);
+  font-weight: 700;
+}
+
+/* sticky action bar. Owns its own safe-area inset -- see the note on .shell. */
+.bottombar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-6) calc(var(--space-5) * -1) 0;
+  padding: var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.bottombar .btn {
+  margin-top: 0;
+}
+
+.bottombar .btn.ghost {
+  flex: 0 0 auto;
+  width: auto;
+  padding-inline: var(--space-5);
+}
+
+/* --- install hint --------------------------------------------------------- */
+
+.install {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-top: var(--space-5);
+  padding: var(--space-4) 15px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.install strong {
+  color: var(--ink);
+}
+
+.install button {
+  flex-shrink: 0;
+}
+
+/* --- admin ---------------------------------------------------------------- */
+
+.admin {
+  max-width: 760px;
+}
+
+.rowlist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rowitem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.rowitem.off {
+  opacity: 0.5;
+}
+
+.rowitem h3 {
+  margin: 0 0 3px;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.rowitem code {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+
+.pill {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--brand-deep);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge.ok {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.badge.unverified {
+  background: var(--caution-soft);
+  color: var(--caution);
+}
+
+.formgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.formgrid .wide {
+  grid-column: 1 / -1;
+}
+
+/* Two columns on a phone made every admin form unusable. */
+@media (max-width: 560px) {
+  .formgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rowitem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .segmented {
+    grid-template-columns: 1fr;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tablish {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.tablish th,
+.tablish td {
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tablish th {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+hr.sep {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--space-6) 0;
+}
+
+.section-intro {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+h2.section {
+  margin: 0 0 6px;
+  font-size: var(--text-md);
+}
+
+
+/* --- desktop ---------------------------------------------------------------
+   The tracker is phone-first, but it is also opened on laptops, where a single
+   460px column stranded most of the window. Above 900px the ring and the button
+   sit on the left, and the tip and the calendar move to the right where there
+   is room for the calendar to actually be readable. --------------------------- */
+
+.tracker-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .shell.wide {
+    max-width: 1080px;
+  }
+
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .tracker-main,
+  .tracker-side {
+    min-width: 0;
+  }
+
+  /* The calendar is the reason for the second column: bigger cells, real gaps. */
+  .tracker-side .grid {
+    gap: 6px;
+  }
+
+  .tracker-side .day {
+    border-radius: 5px;
+  }
+
+  .tracker-side .legend {
+    font-size: var(--text-sm);
+  }
+
+  .tracker-side .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .top h1 {
+    font-size: var(--text-xl);
+  }
+
+  /* Admin tables get the same room rather than staying phone-width. */
+  .shell.admin {
+    max-width: 1080px;
+  }
+}
+
+/* --- the greeting ---------------------------------------------------------- */
+
+.greeting {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  animation: greeting-out 2.2s var(--ease) forwards;
+  pointer-events: none;
+}
+
+.greeting-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-5);
+  animation: greeting-rise 700ms var(--ease) both;
+}
+
+.greeting-hello {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.greeting-name {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 11vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--brand-deep);
+}
+
+@keyframes greeting-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes greeting-out {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The tracker heading: name first, challenge length as its own line. */
+.challenge-heading {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
